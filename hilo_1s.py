@@ -13,7 +13,8 @@ class Hilo1s(QThread):
         self.is_running = True
         while self.is_running:
             time.sleep(1)
-            self.beep.emit(True)
+            if self.is_running:
+             self.beep.emit(True)
 
     def stop(self):
         self.is_running = False

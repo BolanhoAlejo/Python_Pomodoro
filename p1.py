@@ -36,8 +36,11 @@ class MainWindow(QMainWindow):
         layout_vuelta = QHBoxLayout()
         layout_vuelta.addWidget(self.label_vueltas_titulo)
         layout_vuelta.addWidget(self.label_vueltas)
-        layout_vuelta.addWidget(self.label_estado)
         layout_principal.addLayout(layout_vuelta)
+
+        layout_estado = QHBoxLayout()
+        layout_estado.addWidget(self.label_estado)
+        layout_principal.addLayout(layout_estado)
 
         layout_button = QHBoxLayout()
         layout_button.addWidget(self.button_comenzar)
@@ -50,8 +53,71 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(widget)
 
     def init_style(self):
-        self.label_segundos.setStyleSheet('font-size: 32px; qproperty-alignment: AlignCenter; color: black;')
+        self.setStyleSheet("""
+           QWidget {
+             background-color: #333333;
+             color: white;
+             font-family: 'Verdana';
+             font-size: 14px;
+           }
+        """)
+        self.seconts_run_style = """
+           font-size: 80px;
+           font-weight: bold;
+           qproperty-alignment: AlignCenter;
+           color: #32CD32;
+           background-color:transparent;
+        """
+        self.seconts_pause_style = """
+           font-size: 80px;
+           font-weight: bold;
+           qproperty-alignment: AlignCenter;
+           color: #FF4500;
+           background-color:transparent;
+        """
+        self.seconts_descanso_style = """
+           font-size: 80px;
+           font-weight: bold;
+           qproperty-alignment: AlignCenter;
+           color: #FFC107;
+           background-color:transparent;
+        """
+        button_style = """
+          QPushButton {
+            background-color: #555555;
+            border: 2px solid #777777;
+            border-radius: 10px;
+            padding: 10px;
+            color: white;
+            font-weight: bold;
+          }
+          QPushButton:hover {
+            background-color: #777777;
+            border-color: white;
+          }
+        """
+        text_style = """
+           font-size: 18px;
+           font-weight: bold;
+           qproperty-alignment: AlignLeft;
+           color: white;
+        """
+        contador_style = """
+           color: #FFFFFF;
+           font-family: 'Verdana';
+           font-size: 24px;
+           font-weight: bold;
+           qproperty-alignment: AlignRight;
+           padding-left: 5px;
+        """
 
+        self.label_segundos.setStyleSheet(self.seconts_run_style)
+        self.button_comenzar.setStyleSheet(button_style)
+        self.button_pausa.setStyleSheet(button_style)
+        self.button_reset.setStyleSheet(button_style)
+        self.label_vueltas_titulo.setStyleSheet(text_style)
+        self.label_vueltas.setStyleSheet(contador_style)
+        self.label_estado.setStyleSheet(text_style)
     def init_threads(self):
         self.hilo_1s = Hilo1s()
         self.hilo_1s.beep.connect(self.beep_1s)
@@ -65,7 +131,7 @@ class MainWindow(QMainWindow):
           limite = self.tiempo_descanso
         else:
           limite = self.tiempo_trabajo
-        if self.segundos >= limite:
+        if self.segundos > limite:
           self.cambiar_fase()
         self.actualizar_segundos()
 
@@ -76,21 +142,26 @@ class MainWindow(QMainWindow):
           self.vueltas += 1
           self.label_vueltas.setText(str(self.vueltas))
           self.label_estado.setText('Descansando.')
+          self.label_segundos.setStyleSheet(self.seconts_descanso_style)
         else:
-          print("A laburar!")
           self.label_estado.setText('Trabajando.')
+          self.label_segundos.setStyleSheet(self.seconts_run_style)
 
     def comenzar_reloj(self):
         if not self.hilo_1s.isRunning():
           self.hilo_1s.start()
+        if self.descanso:
+          self.label_estado.setText('Descansando.')
+          self.label_segundos.setStyleSheet(self.seconts_descanso_style)
+        else:
           self.label_estado.setText('Trabajando.')
-          self.label_segundos.setStyleSheet('''font-size: 32px; qproperty-alignment: AlignCenter; color: green;''')
+          self.label_segundos.setStyleSheet(self.seconts_run_style)
 
     def pausar_reloj(self):
         if self.hilo_1s.isRunning():
           self.hilo_1s.stop()
           self.label_estado.setText('Pausado.')
-          self.label_segundos.setStyleSheet('''font-size: 32px; qproperty-alignment: AlignCenter; color: red;''')
+          self.label_segundos.setStyleSheet(self.seconts_pause_style)
 
     def reset_reloj(self):
         self.hilo_1s.stop()
@@ -98,7 +169,7 @@ class MainWindow(QMainWindow):
         self.label_vueltas.setText("0")
         self.actualizar_segundos()
         self.label_estado.setText('Esperando...')
-        self.label_segundos.setStyleSheet('''font-size: 32px; qproperty-alignment: AlignCenter; color: black;''')
+        self.label_segundos.setStyleSheet(self.seconts_run_style)
 
     @pyqtSlot(bool)
     def beep_1s(self, value):
